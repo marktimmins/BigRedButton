@@ -1,0 +1,32 @@
+name: Publish and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish with Visual Studio profile
+        run: dotnet publish BigRedButton/BigRedButton.csproj --configuration Release /p:PublishProfile=DeployApp
+
+      - name: List published files
+        run: dir BigRedButton\bin\Release\net8.0-windows\publish || true
+
+      - name: Create GitHub Release and upload EXE
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BigRedButton/bin/Release/net8.0-windows/publish/win-x64/BigRedButton.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.BIGREDBUTTON_TOKEN }}
